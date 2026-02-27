@@ -3,12 +3,9 @@ disable_existing_loggers: false
 
 formatters:
   standard:
+    # run_id is injected at runtime by src.logging_filter.RunIdFilter
     format: "%(asctime)s [%(levelname)s] %(name)s run_id=%(run_id)s - %(message)s"
     datefmt: "%Y-%m-%dT%H:%M:%S"
-
-filters:
-  run_id_filter:
-    (): src.logging_filter.RunIdFilter
 
 handlers:
   console:

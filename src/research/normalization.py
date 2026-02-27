@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from config.constants import LEAGUE_AVERAGE_GOALS
 from src.research.odds_client import OddsMarket
 from src.research.stats_client import TeamStats
 
@@ -22,11 +23,10 @@ def normalize(market: OddsMarket, home_stats: TeamStats, away_stats: TeamStats) 
     """Combine market odds + team stats into a NormalizedEvent.
 
     The expected goals (lambdas) are estimated from each team's scoring rate
-    adjusted by the opponent's defensive rate relative to the league average (1.5).
+    adjusted by the opponent's defensive rate relative to the league average.
     """
-    league_avg = 1.5
-    home_lambda = home_stats.avg_goals_scored * (away_stats.avg_goals_conceded / league_avg)
-    away_lambda = away_stats.avg_goals_scored * (home_stats.avg_goals_conceded / league_avg)
+    home_lambda = home_stats.avg_goals_scored * (away_stats.avg_goals_conceded / LEAGUE_AVERAGE_GOALS)
+    away_lambda = away_stats.avg_goals_scored * (home_stats.avg_goals_conceded / LEAGUE_AVERAGE_GOALS)
 
     return NormalizedEvent(
         event_id=market.event_id,

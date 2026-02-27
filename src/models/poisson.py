@@ -42,7 +42,7 @@ def compute_probabilities(lam_home: float, lam_away: float) -> PoissonResult:
             else:
                 away_win += prob
 
-            if i + j > 2:  # strictly more than 2.5 goals
+            if i + j > 2:  # 3+ total goals (equivalent to "over 2.5")
                 over += prob
             else:
                 under += prob

@@ -31,5 +31,9 @@ def commit_and_push(
         logger.info("Committed and pushed: %s", files)
         return True
     except subprocess.CalledProcessError as exc:
-        logger.warning("git commit/push failed: %s", (exc.stderr or b"").decode(errors="replace").strip())
+        logger.warning(
+            "git commit/push failed for %s: %s",
+            files,
+            (exc.stderr or b"").decode(errors="replace").strip(),
+        )
         return False

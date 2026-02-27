@@ -3,7 +3,9 @@ import os
 
 class Settings:
     def __init__(self):
-        self.DRY_RUN: bool = os.environ.get("DRY_RUN", "true").lower() not in ("false", "0", "no")
+        self.DRY_RUN: bool = os.environ.get("DRY_RUN", "true").lower() not in (
+            "false", "0", "no"
+        )  # Falsy values: "false", "0", "no" (case-insensitive); everything else is truthy
         self.LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "INFO")
         self.KELLY_FRACTION: float = float(os.environ.get("KELLY_FRACTION", "0.25"))
         self.MAX_STAKE_PCT: float = float(os.environ.get("MAX_STAKE_PCT", "0.05"))

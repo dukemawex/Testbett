@@ -11,8 +11,6 @@ permissions:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    env:
-      DRY_RUN: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

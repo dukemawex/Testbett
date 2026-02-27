@@ -52,15 +52,15 @@ class Executor:
             poisson_result = compute_probabilities(event.home_lambda, event.away_lambda)
             true_probs = compute_true_probabilities(poisson_result)
 
-            best_selection, selected_edge, best_odds, best_true_prob = self._best_selection(
+            best_selection, best_edge, best_odds, best_true_prob = self._best_selection(
                 event, true_probs
             )
 
-            if selected_edge is None or selected_edge < self.settings.MIN_EDGE_THRESHOLD:
+            if best_edge is None or best_edge < self.settings.MIN_EDGE_THRESHOLD:
                 logger.debug(
                     "Event %s: edge %.4f below threshold %.4f – skip",
                     event.event_id,
-                    selected_edge or 0.0,
+                    best_edge or 0.0,
                     self.settings.MIN_EDGE_THRESHOLD,
                 )
                 continue
@@ -93,7 +93,7 @@ class Executor:
                     event.event_id,
                     best_selection,
                     best_odds,
-                    selected_edge,
+                    best_edge,
                 )
                 response_success = True
                 bet_id = f"dry_{uuid.uuid4().hex[:8]}"
@@ -114,7 +114,7 @@ class Executor:
                 "stake": stake,
                 "odds": best_odds,
                 "true_prob": round(best_true_prob, 4),
-                "edge": round(selected_edge, 4),
+                "edge": round(best_edge, 4),
                 "dry_run": self.settings.DRY_RUN,
                 "success": response_success,
             }

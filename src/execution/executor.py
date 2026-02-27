@@ -26,10 +26,12 @@ class Executor:
         sportsbook: SportsbookProtocol,
         bankroll: BankrollManager,
         settings: Settings,
+        llm_analyst=None,
     ):
         self.sportsbook = sportsbook
         self.bankroll = bankroll
         self.settings = settings
+        self.llm_analyst = llm_analyst  # optional BetAnalyst; None = disabled
 
     def run(self, events: List[NormalizedEvent]) -> List[dict]:
         """Process events, compute edges, and place bets (or log in DRY_RUN).
@@ -78,6 +80,44 @@ class Executor:
                 logger.debug("Event %s: computed stake too small – skip", event.event_id)
                 continue
 
+            # ----------------------------------------------------------
+            # Optional LLM second-opinion
+            # ----------------------------------------------------------
+            llm_reasoning = ""
+            if self.llm_analyst is not None:
+                analysis = self.llm_analyst.analyse(
+                    event=event,
+                    selection=best_selection,
+                    decimal_odds=best_odds,
+                    true_prob=best_true_prob,
+                    edge=best_edge,
+                    kelly_stake=stake,
+                )
+                llm_reasoning = analysis.reasoning
+                if not analysis.approved:
+                    logger.info(
+                        "LLM rejected %s/%s (confidence=%.2f): %s",
+                        event.event_id, best_selection, analysis.confidence, analysis.reasoning,
+                    )
+                    continue
+                # Apply stake multiplier, then re-check minimum stake
+                stake = min(
+                    round(stake * analysis.stake_multiplier, 2),
+                    round(state.balance * self.settings.MAX_STAKE_PCT, 2),
+                )
+                if stake < self.settings.MIN_STAKE:
+                    logger.debug(
+                        "Event %s: stake %.2f below MIN_STAKE after LLM multiplier – skip",
+                        event.event_id, stake,
+                    )
+                    continue
+                logger.info(
+                    "LLM approved %s/%s (confidence=%.2f, multiplier=%.2f): %s",
+                    event.event_id, best_selection,
+                    analysis.confidence, analysis.stake_multiplier,
+                    analysis.reasoning,
+                )
+
             bet = BetRequest(
                 event_id=event.event_id,
                 market_type=event.market_type,
@@ -115,6 +155,7 @@ class Executor:
                 "odds": best_odds,
                 "true_prob": round(best_true_prob, 4),
                 "edge": round(best_edge, 4),
+                "llm_reasoning": llm_reasoning,
                 "dry_run": self.settings.DRY_RUN,
                 "success": response_success,
             }
@@ -142,3 +183,4 @@ class Executor:
         selection, true_prob, odds = best
         edge = compute_edge(true_prob, odds)
         return selection, edge, odds, true_prob
+

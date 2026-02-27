@@ -19,4 +19,8 @@ class Settings:
         self.ODDS_API_KEY: str = os.environ.get("ODDS_API_KEY", "")
         self.SEARCH_API_KEY: str = os.environ.get("SEARCH_API_KEY", "")
         self.SPORTSBOOK_KEY: str = os.environ.get("SPORTSBOOK_KEY", "")
+        self.SPORTSBOOK_BASE_URL: str = os.environ.get("SPORTSBOOK_BASE_URL", "")
         self.SLACK_WEBHOOK_URL: str = os.environ.get("SLACK_WEBHOOK_URL", "")
+        # LLM settings
+        self.OPENAI_API_KEY: str = os.environ.get("OPENAI_API_KEY", "")
+        self.OPENAI_MODEL: str = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")

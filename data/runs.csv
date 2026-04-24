@@ -1802,3 +1802,6 @@ dry_3c2a9878,evt_003,EastRovers,WestWanderers,1X2,away,28.31,2.8,0.4299,0.0728,S
 dry_d2ca167e,evt_001,HomeFC,AwayFC,1X2,home,46.14,2.1,0.5729,0.0967,Stub LLM: statistical edge is positive; no key provided for real analysis.,True,True
 dry_c8cda72f,evt_002,NorthCity,SouthUnited,1X2,home,50.0,1.85,0.7602,0.2196,Stub LLM: statistical edge is positive; no key provided for real analysis.,True,True
 dry_f57c71a1,evt_003,EastRovers,WestWanderers,1X2,away,28.31,2.8,0.4299,0.0728,Stub LLM: statistical edge is positive; no key provided for real analysis.,True,True
+dry_bf158314,evt_001,HomeFC,AwayFC,1X2,home,46.14,2.1,0.5729,0.0967,Stub LLM: statistical edge is positive; no key provided for real analysis.,True,True
+dry_e99c0141,evt_002,NorthCity,SouthUnited,1X2,home,50.0,1.85,0.7602,0.2196,Stub LLM: statistical edge is positive; no key provided for real analysis.,True,True
+dry_794951c8,evt_003,EastRovers,WestWanderers,1X2,away,28.31,2.8,0.4299,0.0728,Stub LLM: statistical edge is positive; no key provided for real analysis.,True,True

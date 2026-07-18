@@ -120,12 +120,15 @@ def main() -> None:
         append_run_log(settings.CSV_LOG_FILE, records)
         logger.info("Appended %d records to %s", len(records), settings.CSV_LOG_FILE)
 
-    # 9. Git commit (always attempt so CSV stays up to date in repo)
-    from src.storage.git_commit import commit_and_push
-    commit_and_push(
-        [settings.CSV_LOG_FILE, settings.BANKROLL_FILE],
-        message=f"chore: update run logs {run_id} [skip ci]",
-    )
+    # 9. Git commit (OPT-IN only: off by default so no git write creds are needed to run)
+    if os.environ.get("GIT_AUTOCOMMIT", "false").lower() in ("true", "1", "yes"):
+        from src.storage.git_commit import commit_and_push
+        commit_and_push(
+            [settings.CSV_LOG_FILE, settings.BANKROLL_FILE],
+            message=f"chore: update run logs {run_id} [skip ci]",
+        )
+    else:
+        logger.info("GIT_AUTOCOMMIT disabled; run logs kept locally only.")
 
     logger.info("Run %s complete.", run_id)
 

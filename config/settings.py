@@ -20,6 +20,7 @@ class Settings:
         self.SEARCH_API_KEY: str = os.environ.get("SEARCH_API_KEY", "")
         self.FOOTBALL_DATA_API_KEY: str = os.environ.get("FOOTBALL_DATA_API_KEY", "")
         self.COMPETITION: str = os.environ.get("COMPETITION", "PL")
+        self.SEASON: str = os.environ.get("SEASON", "")  # "" = current w/ previous-season fallback
         self.SPORTSBOOK_KEY: str = os.environ.get("SPORTSBOOK_KEY", "")
         self.SPORTSBOOK_BASE_URL: str = os.environ.get("SPORTSBOOK_BASE_URL", "")
         self.SLACK_WEBHOOK_URL: str = os.environ.get("SLACK_WEBHOOK_URL", "")

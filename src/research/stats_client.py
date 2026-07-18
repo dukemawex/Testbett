@@ -57,12 +57,14 @@ class FootballDataStatsClient:
     _BASE = "https://api.football-data.org/v4"
     _TIMEOUT = 15
 
-    def __init__(self, api_key: str, competition: str = "PL", lookback: int = 10):
+    def __init__(self, api_key: str, competition: str = "PL", lookback: int = 10, season: str = ""):
         self._key = api_key
         self._competition = competition
         self._lookback = lookback
+        self._season = season  # "" = current; falls back to previous season if no finished games
         self._cache: Dict[str, TeamStats] = {}
         self._loaded = False
+        self._season_used: str = ""
 
     def _get(self, path: str) -> Optional[dict]:
         url = f"{self._BASE}{path}"
@@ -76,16 +78,41 @@ class FootballDataStatsClient:
             logger.warning("football-data fetch failed for %s: %s", path, exc)
         return None
 
+    def _finished_matches(self) -> list:
+        """Return finished matches for the configured season, falling back to the
+        previous season when the current one has none (e.g. pre-season)."""
+        import datetime
+
+        seasons = []
+        if self._season:
+            seasons = [self._season]
+        else:
+            cur = datetime.date.today().year
+            seasons = ["", str(cur - 1)]  # current (default), then last season
+
+        for season in seasons:
+            q = "?status=FINISHED" + (f"&season={season}" if season else "")
+            data = self._get(f"/competitions/{self._competition}/matches{q}")
+            matches = (data or {}).get("matches", [])
+            finished = [m for m in matches if m.get("status") == "FINISHED"]
+            if finished:
+                self._season_used = season or "current"
+                logger.info("football-data: using season=%s (%d finished matches)",
+                            self._season_used, len(finished))
+                return finished
+        return []
+
     def _load(self) -> None:
         """Fetch finished matches once and build per-team scored/conceded averages."""
         self._loaded = True
-        data = self._get(f"/competitions/{self._competition}/matches?status=FINISHED")
-        if not data or "matches" not in data:
-            logger.warning("football-data: no finished matches for %s; stats unavailable", self._competition)
+        matches = self._finished_matches()
+        if not matches:
+            logger.warning("football-data: no finished matches for %s (any season); stats unavailable",
+                           self._competition)
             return
 
         agg: Dict[str, list] = {}  # team -> [scored_total, conceded_total, games]
-        for m in data["matches"]:
+        for m in matches:
             ft = (m.get("score") or {}).get("fullTime") or {}
             hs, as_ = ft.get("home"), ft.get("away")
             if hs is None or as_ is None:
@@ -126,19 +153,31 @@ class FootballDataStatsClient:
 
 
 def _name_matches(a: str, b: str) -> bool:
-    """Loose team-name match across data sources (e.g. 'Man United' vs 'Manchester United FC')."""
+    """Conservative team-name match across data sources.
+
+    Only drops non-identifying suffixes (fc/afc). It deliberately KEEPS words like
+    'city'/'united'/'town' because they distinguish clubs (Manchester United vs
+    Manchester City). Requires that the smaller token set is a subset of the larger
+    AND shares at least 2 tokens, so single-word overlaps ('manchester') never match.
+    """
     def norm(x: str) -> set:
-        drop = {"fc", "afc", "and", "hove", "albion", "city", "united", "the"}
-        toks = {t for t in x.lower().replace("&", " ").replace(".", " ").split() if t not in drop}
-        return toks
+        drop = {"fc", "afc", "the", "&", "and"}
+        x = x.lower().replace("&", " ").replace(".", " ")
+        return {t for t in x.split() if t not in drop}
+
     ta, tb = norm(a), norm(b)
     if not ta or not tb:
         return False
-    return len(ta & tb) >= 1 and (ta <= tb or tb <= ta or len(ta & tb) >= 2)
+    shared = ta & tb
+    smaller = ta if len(ta) <= len(tb) else tb
+    # exact set match, OR full subset containment with >=2 shared identifying tokens
+    if ta == tb:
+        return True
+    return smaller <= (ta | tb) and shared == smaller and len(shared) >= 2
 
 
-def get_stats_client(api_key: str = "", competition: str = "PL") -> StatsClientProtocol:
+def get_stats_client(api_key: str = "", competition: str = "PL", season: str = "") -> StatsClientProtocol:
     """Return the real football-data client when a key is set, else the stub."""
     if api_key:
-        return FootballDataStatsClient(api_key, competition=competition)
+        return FootballDataStatsClient(api_key, competition=competition, season=season)
     return StubStatsClient()

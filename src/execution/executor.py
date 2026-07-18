@@ -176,11 +176,10 @@ class Executor:
             ("draw", getattr(true_probs, "draw"), event.draw_odds),
             ("away", getattr(true_probs, "away_win"), event.away_odds),
         ]
-        best = max(
-            candidates,
-            key=lambda x: compute_edge(x[1], x[2]),
-        )
-        selection, true_prob, odds = best
-        edge = compute_edge(true_prob, odds)
-        return selection, edge, odds, true_prob
+        # Compute each edge once, then pick the max (no double evaluation).
+        scored = [
+            (sel, compute_edge(prob, odds), odds, prob)
+            for sel, prob, odds in candidates
+        ]
+        return max(scored, key=lambda x: x[1])
 

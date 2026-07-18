@@ -51,6 +51,13 @@ class Executor:
                 logger.warning("Daily loss limit reached – stopping.")
                 break
 
+            if not getattr(event, "stats_real", False):
+                logger.warning(
+                    "Event %s: skipped - team stats are not from real data (no forecast, no bet).",
+                    event.event_id,
+                )
+                continue
+
             poisson_result = compute_probabilities(event.home_lambda, event.away_lambda)
             true_probs = compute_true_probabilities(poisson_result)
 

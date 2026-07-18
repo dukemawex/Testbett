@@ -17,6 +17,7 @@ class NormalizedEvent:
     home_lambda: float  # expected goals for home
     away_lambda: float  # expected goals for away
     timestamp: float
+    stats_real: bool = False  # True only when both teams have real derived stats
 
 
 def normalize(market: OddsMarket, home_stats: TeamStats, away_stats: TeamStats) -> NormalizedEvent:
@@ -39,4 +40,5 @@ def normalize(market: OddsMarket, home_stats: TeamStats, away_stats: TeamStats) 
         home_lambda=home_lambda,
         away_lambda=away_lambda,
         timestamp=market.timestamp,
+        stats_real=bool(getattr(home_stats, 'is_real', False) and getattr(away_stats, 'is_real', False)),
     )

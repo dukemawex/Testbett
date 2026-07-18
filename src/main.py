@@ -79,7 +79,7 @@ def main() -> None:
     from src.research.normalization import normalize
 
     odds_client = get_odds_client(settings.ODDS_API_KEY)
-    stats_client = get_stats_client(settings.SEARCH_API_KEY)
+    stats_client = get_stats_client(settings.FOOTBALL_DATA_API_KEY, settings.COMPETITION)
     markets = odds_client.fetch_markets()
     logger.info("Fetched %d markets", len(markets))
 
